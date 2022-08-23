@@ -1,0 +1,14 @@
+{
+  "name": "linkedin-scraper",
+  "version": "1.0.0",
+  "description": "basic linkedin job posting scraper",
+  "scripts": {
+    "start": "node index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Appu Mistri",
+  "license": "ISC",
+  "dependencies": {
+    "linkedin-jobs-scraper": "^13.0.1"
+  }
+}
