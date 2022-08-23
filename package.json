@@ -9,6 +9,7 @@
   "author": "Appu Mistri",
   "license": "ISC",
   "dependencies": {
-    "linkedin-jobs-scraper": "^13.0.1"
+    "linkedin-jobs-scraper": "^13.0.1",
+    "objects-to-csv": "^1.3.6"
   }
 }

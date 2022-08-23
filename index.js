@@ -1,3 +1,4 @@
+const { on } = require("events");
 const { 
     LinkedinScraper,
     relevanceFilter,
@@ -6,15 +7,21 @@ const {
     experienceLevelFilter,
     events,
 } = require("linkedin-jobs-scraper");
+const objectsToCsv = require('objects-to-csv');
+const fs = require('fs');
+
 
 (async () => {
+
+    const jobPosts = [];
+
     // Each scraper instance is associated with one browser.
     // Concurrent queries will run on different pages within the same browser instance.
     const scraper = new LinkedinScraper({
         headless: true,
-        slowMo: 200,
+        slowMo: 1000,
         args: [
-            "--lang=en-GB",
+            "--lang=en-US",
         ],
     });
 
@@ -22,22 +29,26 @@ const {
     
     // Emitted once for each processed job
     scraper.on(events.scraper.data, (data) => {
+        const jobData = {
+            Query: `${data.query}`,
+            Location: `${data.location}`,
+            Id: `${data.jobId}`,
+            Title: `${data.title}`,
+            Company: `${data.company ? data.company : "N/A"}`,
+            CompanyLink: `${data.companyLink ? data.companyLink : "N/A"}`,
+            CompanyImgLink: `${data.companyImgLink ? data.companyImgLink : "N/A"}`,
+            Place: `${data.place}`,
+            Date: `${data.date}`,
+            Link: `${data.link}`,
+            applyLink: `${data.applyLink ? data.applyLink : "N/A"}`,
+            insights: `${data.insights}`,
+        }
         console.log(
             data.description.length,
             data.descriptionHTML.length,
-            `Query='${data.query}'`,
-            `Location='${data.location}'`,
-            `Id='${data.jobId}'`,
-            `Title='${data.title}'`,
-            `Company='${data.company ? data.company : "N/A"}'`,
-            `CompanyLink='${data.companyLink ? data.companyLink : "N/A"}'`,
-            `CompanyImgLink='${data.companyImgLink ? data.companyImgLink : "N/A"}'`,
-            `Place='${data.place}'`,
-            `Date='${data.date}'`,
-            `Link='${data.link}'`,
-            `applyLink='${data.applyLink ? data.applyLink : "N/A"}'`,
-            `insights='${data.insights}'`,
+            jobData
         );
+        jobPosts.push(jobData);
     });
     
     // Emitted once for each scraped page
@@ -51,6 +62,15 @@ const {
 
     scraper.on(events.scraper.end, () => {
         console.log('All done!');
+
+        const filename = './jobs.csv';
+        if (fs.existsSync(filename)) {
+            new objectsToCsv(jobPosts).toDisk(filename, { append: true });
+        }
+        else {
+            new objectsToCsv(jobPosts).toDisk(filename);
+        }
+        
     });
 
     // Custom function executed on browser side to extract job description [optional]
@@ -64,7 +84,7 @@ const {
         // Run queries serially
         scraper.run([
             {
-                query: "Engineer",
+                query: "testing, automation",
                 options: {
                     locations: ["United States"], // This will override global options ["Europe"]
                     filters: {
@@ -72,17 +92,17 @@ const {
                     },       
                 }                                                       
             },
-            {
-                query: "Sales",
-                options: {                    
-                    limit: 10, // This will override global option limit (33)
-                    applyLink: false, // Try to extract apply link. Default to true.
-                    descriptionFn: descriptionFn, // Custom job description processor
-                }
-            },
+            // {
+            //     query: "Sales",
+            //     options: {                    
+            //         limit: 10, // This will override global option limit (33)
+            //         applyLink: false, // Try to extract apply link. Default to true.
+            //         descriptionFn: descriptionFn, // Custom job description processor
+            //     }
+            // },
         ], { // Global options, will be merged individually with each query options
             locations: ["Europe"],
-            limit: 33,
+            limit: 30,
         }),
     ]);
 
